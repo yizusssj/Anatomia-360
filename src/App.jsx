@@ -6,12 +6,15 @@ import Forgot from "./pages/Forgot";
 import VerifyCode from "./pages/verifyCode";
 import ResetSuccess from "./pages/resetSuccess";
 import ResetPassword from "./pages/resetPassword";
-
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
 import Quiz from "./pages/quiz";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
+import QuizSetup from "./pages/QuizSetup";
+import QuizCount from "./pages/QuizCount";
+import QuizPlay from "./pages/QuizPlay";
+import QuizResult from "./pages/QuizResult";
 
 export default function App() {
   return (
@@ -31,6 +34,11 @@ export default function App() {
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/quiz/setup" element={<QuizSetup />} />
+        <Route path="/quiz/count/:systemId" element={<QuizCount />} />
+        <Route path="/quiz/play/:systemId/:count" element={<QuizPlay />} />
+        <Route path="/quiz/result/:systemId/:count/:score" element={<QuizResult />} />
+        
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

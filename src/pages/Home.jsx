@@ -41,7 +41,7 @@ export default function Home() {
 
               <div className="mt-4 space-y-3">
                 <Link
-                  to="/quiz"
+                  to="/quiz/setup"
                   className="flex items-center gap-3 rounded-full bg-white/80 text-black px-4 py-3 font-semibold hover:bg-white transition"
                   onClick={() => setOpenExplore(false)}
                 >
