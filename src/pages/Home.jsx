@@ -1,25 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
+import logo from "../assets/logochat.png";
 
 export default function Home() {
   const [openExplore, setOpenExplore] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#0b0f15] text-white pb-24 relative">
-      <div className="mx-auto w-full max-w-md px-6 pt-12">
-        {/* placeholder logo + titulo como tu mock */}
-        <div className="flex flex-col items-center">
-          <div className="h-20 w-20 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-            <span className="text-white/60 text-xs">LOGO</span>
-          </div>
-
-          <div className="mt-4 text-center">
-            <div className="text-2xl font-extrabold tracking-[0.12em] text-white/80 drop-shadow">
-              ANATOMIA 360
-            </div>
-          </div>
-        </div>
+      <div className="mx-auto w-full px-6 pt-12">
+        <div className="flex justify-center">
+  <img
+    src={logo}
+    alt="Anatomia 360"
+    className="w-[600px] mx-auto drop-shadow-[0_0_35px_rgba(255,255,255,0.25)]"
+  />
+</div>
       </div>
 
       {/* Overlay Explore Menu */}
