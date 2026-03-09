@@ -7,13 +7,13 @@ export default function Home() {
   const [openExplore, setOpenExplore] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0b0f15] text-white pb-24 relative">
+    <div className="min-h-screen bg-[#0b0f15] text-white pb-24 flex items-center justify-center">
       <div className="mx-auto w-full px-6 pt-12">
         <div className="flex justify-center">
   <img
     src={logo}
     alt="Anatomia 360"
-    className="w-[600px] mx-auto drop-shadow-[0_0_35px_rgba(255,255,255,0.25)]"
+    className="w-[80vw] max-w-[520px] mx-auto drop-shadow-[0_0_40px_rgba(255,255,255,0.25)]"
   />
 </div>
       </div>
