@@ -1,15 +1,33 @@
-// src/pages/Progress.jsx
 import { Link } from "react-router-dom";
 
 const ITEMS = [
-  { id: "oseo", title: "Sistema óseo", color: "orange", desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "nervioso", title: "Sistema nervioso", color: "pink", desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "muscular", title: "Sistema muscular", color: "yellow", desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "digestivo", title: "Sistema digestivo", color: "green", desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
+  {
+    id: "oseo",
+    title: "Sistema óseo",
+    color: "orange",
+    desc: "Avance del sistema óseo basado en los quizzes completados.",
+  },
+  {
+    id: "nervioso",
+    title: "Sistema nervioso",
+    color: "pink",
+    desc: "Avance del sistema nervioso basado en los quizzes completados.",
+  },
+  {
+    id: "muscular",
+    title: "Sistema muscular",
+    color: "yellow",
+    desc: "Avance del sistema muscular basado en los quizzes completados.",
+  },
+  {
+    id: "digestivo",
+    title: "Sistema digestivo",
+    color: "green",
+    desc: "Avance del sistema digestivo basado en los quizzes completados.",
+  },
 ];
 
 function Ring({ percent = 0, color = "orange" }) {
-  // stroke “bonito” tipo figma
   const size = 56;
   const stroke = 6;
   const r = (size - stroke) / 2;
@@ -34,7 +52,7 @@ function Ring({ percent = 0, color = "orange" }) {
           cy={size / 2}
           r={r}
           fill="none"
-          className={`${cls.bg}`}
+          className={cls.bg}
           strokeWidth={stroke}
         />
         <circle
@@ -42,7 +60,7 @@ function Ring({ percent = 0, color = "orange" }) {
           cy={size / 2}
           r={r}
           fill="none"
-          className={`${cls.ring}`}
+          className={cls.ring}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${c - dash}`}
@@ -51,7 +69,7 @@ function Ring({ percent = 0, color = "orange" }) {
 
       <div className="absolute inset-0 grid place-items-center">
         <div className="text-[10px] leading-tight text-center">
-          <div className="text-[9px] text-black/50">Status</div>
+          <div className="text-[9px] text-black/50">Porcentaje</div>
           <div className={`font-semibold ${cls.text}`}>{p}%</div>
         </div>
       </div>
@@ -60,9 +78,10 @@ function Ring({ percent = 0, color = "orange" }) {
 }
 
 export default function Progress() {
+  const savedProgress = JSON.parse(localStorage.getItem("quizProgress") || "{}");
+
   return (
-    <div className="min-h-[calc(100vh-64px)] px-5 pt-6 pb-6">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-b from-[#2e3a4f] via-[#263246] to-[#1c2431] text-white px-5 pt-6 pb-24">
       <div className="relative flex items-center justify-center mb-6">
         <Link
           to="/home"
@@ -72,17 +91,16 @@ export default function Progress() {
           <span className="text-white text-lg leading-none">←</span>
         </Link>
 
-        <h1 className="text-white text-lg font-semibold">Mi progreso</h1>
+        <h1 className="text-lg font-semibold">Mi progreso</h1>
       </div>
 
-      {/* Cards */}
       <div className="space-y-4">
         {ITEMS.map((it) => (
           <div
             key={it.id}
             className="bg-white rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.25)] flex items-center gap-4"
           >
-            <Ring percent={0} color={it.color} />
+            <Ring percent={savedProgress[it.id]?.average || 0} color={it.color} />
 
             <div className="min-w-0">
               <div
@@ -97,6 +115,7 @@ export default function Progress() {
                 {it.title}
               </div>
               <div className="text-[11px] text-black/55 leading-snug line-clamp-2">
+              <div className="text-[10px] text-black/40 mt-1"> Intentos: {savedProgress[it.id]?.attempts || 0}</div>
                 {it.desc}
               </div>
             </div>

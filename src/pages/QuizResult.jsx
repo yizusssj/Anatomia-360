@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 const labels = {
   oseo: "Sistema óseo",
@@ -13,6 +14,31 @@ export default function QuizResult() {
   const total = Number(count);
   const result = Number(score);
   const percent = Math.round((result / total) * 100);
+
+  useEffect(() => {
+  const saved = JSON.parse(localStorage.getItem("quizProgress") || "{}");
+
+  const current = saved[systemId] || {
+    attempts: 0,
+    totalScore: 0,
+    average: 0,
+  };
+
+  const attempts = current.attempts + 1;
+  const totalScore = current.totalScore + percent;
+  const average = Math.round(totalScore / attempts);
+
+  const updated = {
+    ...saved,
+    [systemId]: {
+      attempts,
+      totalScore,
+      average,
+    },
+  };
+
+  localStorage.setItem("quizProgress", JSON.stringify(updated));
+}, [systemId, percent]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e3a4f] via-[#263246] to-[#1c2431] px-5 pt-6 pb-24 text-white">
@@ -36,6 +62,13 @@ export default function QuizResult() {
             className="block w-full text-center rounded-2xl bg-white text-[#1c2431] py-3 font-semibold"
           >
             Hacer otro quiz
+          </Link>
+
+          <Link
+            to="/progress"
+            className="block w-full text-center rounded-2xl bg-white/10 border border-white/10 py-3 font-semibold"
+          >
+            Ver mi progreso
           </Link>
 
           <Link
