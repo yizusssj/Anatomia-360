@@ -5,6 +5,7 @@ import { createUserProfile } from "../services/userProfileService";
 
 export default function Register() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -75,13 +76,23 @@ export default function Register() {
             placeholder="Correo"
           />
 
+          <div className="relative">
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
+            className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 pr-20 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
             placeholder="Contraseña"
           />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/70 hover:text-white transition"
+          >
+            {showPassword ? "Ocultar" : "Mostrar"}
+          </button>
+        </div>
 
           {error && (
             <p className="text-red-400 text-sm font-medium">{error}</p>

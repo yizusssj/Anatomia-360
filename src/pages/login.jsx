@@ -5,6 +5,7 @@ import logo from "../assets/logochat.png";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -78,13 +79,23 @@ export default function Login() {
               placeholder="Correo"
             />
 
+            <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
+              className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 pr-20 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
               placeholder="Contraseña"
             />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/70 hover:text-white transition"
+            >
+              {showPassword ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
 
             <div className="text-sm text-white">
               <Link to="/forgot" className="hover:underline">
