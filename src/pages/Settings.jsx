@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { logoutUser } from "../services/authService";
 
 function Section({ title, open, onToggle, children }) {
   return (
@@ -51,19 +52,28 @@ export default function Settings() {
   const [theme, setTheme] = useState("Oscuro");
   const [language, setLanguage] = useState("Español");
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("LOGOUT ERROR:", error);
+    } finally {
+      localStorage.removeItem("auth");
+      localStorage.removeItem("user");
+      localStorage.removeItem("quizProgress");
+      sessionStorage.clear();
+      navigate("/");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e3a4f] via-[#263246] to-[#1c2431] px-5 pt-6 pb-24">
-      {/* Header */}
       <div className="relative flex items-center justify-center mb-10">
         <Link
           to="/home"
@@ -76,7 +86,6 @@ export default function Settings() {
         <h1 className="text-white text-lg font-semibold">Ajustes</h1>
       </div>
 
-      {/* Panel */}
       <div className="mx-auto w-full max-w-[360px] space-y-3">
         <Section
           title="Mi Perfil"
@@ -86,11 +95,11 @@ export default function Settings() {
           <div className="space-y-2">
             <div>
               <p className="text-white/50 text-xs">Nombre</p>
-              <p className="text-white">Usuario Demo</p>
+              <p className="text-white">{user.username || "Usuario"}</p>
             </div>
             <div>
               <p className="text-white/50 text-xs">Correo</p>
-              <p className="text-white">usuario@anatomia360.com</p>
+              <p className="text-white">{user.email || "Sin correo"}</p>
             </div>
             <div>
               <p className="text-white/50 text-xs">Rol</p>
@@ -122,9 +131,7 @@ export default function Settings() {
             />
           </div>
 
-          <p className="text-white/60 text-xs">
-            Selección actual: {theme}
-          </p>
+          <p className="text-white/60 text-xs">Selección actual: {theme}</p>
         </Section>
 
         <Section
@@ -145,9 +152,7 @@ export default function Settings() {
             />
           </div>
 
-          <p className="text-white/60 text-xs">
-            Idioma actual: {language}
-          </p>
+          <p className="text-white/60 text-xs">Idioma actual: {language}</p>
         </Section>
 
         <Section

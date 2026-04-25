@@ -15,6 +15,7 @@ import QuizSetup from "./pages/QuizSetup";
 import QuizCount from "./pages/QuizCount";
 import QuizPlay from "./pages/QuizPlay";
 import QuizResult from "./pages/QuizResult";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -28,17 +29,87 @@ export default function App() {
         <Route path="/reset-success" element={<ResetSuccess />} />
         <Route path="/reset" element={<ResetPassword />} />
 
-        {/* App */}
-        <Route path="/home" element={<Home />} />
-        <Route path="/explore" element={<Explore />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/progress" element={<Progress />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/quiz/setup" element={<QuizSetup />} />
-        <Route path="/quiz/count/:systemId" element={<QuizCount />} />
-        <Route path="/quiz/play/:systemId/:count" element={<QuizPlay />} />
-        <Route path="/quiz/result/:systemId/:count/:score" element={<QuizResult />} />
-        
+        {/* App protegida */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/explore"
+          element={
+            <ProtectedRoute>
+              <Explore />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz"
+          element={
+            <ProtectedRoute>
+              <Quiz />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/progress"
+          element={
+            <ProtectedRoute>
+              <Progress />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz/setup"
+          element={
+            <ProtectedRoute>
+              <QuizSetup />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz/count/:systemId"
+          element={
+            <ProtectedRoute>
+              <QuizCount />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz/play/:systemId/:count"
+          element={
+            <ProtectedRoute>
+              <QuizPlay />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz/result/:systemId/:count/:score"
+          element={
+            <ProtectedRoute>
+              <QuizResult />
+            </ProtectedRoute>
+          }
+        />
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

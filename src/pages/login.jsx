@@ -1,67 +1,116 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../services/authService";
+import logo from "../assets/logochat.png";
 
 export default function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Completa correo y contraseña.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const user = await loginUser(email, password);
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+        })
+      );
+
+      navigate("/home");
+    } catch (err) {
+      console.error("LOGIN ERROR:", err);
+
+      if (err.code === "auth/invalid-credential") {
+        setError("Correo o contraseña incorrectos.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Correo no válido.");
+      } else {
+        setError("No se pudo iniciar sesión.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0f15] text-white">
-      <div className="mx-auto w-full max-w-md px-6 pt-10 pb-24">
-        {/* Placeholder del logo + nombre */}
-        <div className="flex flex-col items-center">
-          {/* círculo logo (placeholder) */}
-          <div className="h-20 w-20 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-            <span className="text-white/60 text-xs">LOGO</span>
+      <div className="mx-auto w-full max-w-md px-6 pt-4 pb-24">
+        <div className="flex justify-center mb-2">
+          <img
+            src={logo}
+            alt="Anatomía 360"
+            className="w-[320px] max-w-[85vw] object-contain mx-auto"
+          />
+        </div>
+
+        <div className="relative -top-12">
+          <div className="mt-2">
+            <h1 className="text-4xl font-extrabold leading-[1.05]">
+              HOLA
+              <br />
+              ¡BIENVENIDO!
+            </h1>
           </div>
 
-          <div className="mt-4 text-center">
-            <div className="text-2xl font-extrabold tracking-[0.18em] text-[#1e8bd6] drop-shadow">
-              ANATOMÍA 360
+          <form onSubmit={handleLogin} className="mt-8 space-y-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
+              placeholder="Correo"
+            />
+
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
+              placeholder="Contraseña"
+            />
+
+            <div className="text-sm text-white">
+              <Link to="/forgot" className="hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
-          </div>
-        </div>
 
-        {/* Título grande */}
-        <div className="mt-10">
-          <h1 className="text-4xl font-extrabold leading-[1.05]">
-            HOLA
-            <br />
-            ¡BIENVENIDO!
-          </h1>
-        </div>
+            {error && <p className="text-red-400 text-sm font-medium">{error}</p>}
 
-        {/* Inputs */}
-        <div className="mt-8 space-y-4">
-          <input
-            className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
-            placeholder="Usuario o correo"
-          />
-          <input
-            type="password"
-            className="w-full rounded-2xl bg-white/25 text-white placeholder-white/70 px-5 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
-            placeholder="Contraseña"
-          />
+            <div className="mt-10 flex items-center justify-between gap-4">
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center rounded-full bg-black/70 px-6 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:bg-black/80 transition"
+              >
+                Registrarse
+              </Link>
 
-          {/* link bajo inputs */}
-          <div className="text-sm text-white/85">
-            <Link to="/forgot" className="hover:underline">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
-        </div>
-
-        {/* Botones abajo */}
-        <div className="mt-10 flex items-center justify-between gap-4">
-          <Link
-            to="/register"
-            className="inline-flex items-center justify-center rounded-full bg-black/70 px-6 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:bg-black/80 transition"
-          >
-            Registrarse
-          </Link>
-
-          <Link
-            to="/home"
-            className="inline-flex items-center justify-center rounded-full bg-black/70 px-6 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:bg-black/80 transition"
-          >
-            Continuar
-          </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex items-center justify-center rounded-full bg-black/70 px-6 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:bg-black/80 transition disabled:opacity-50"
+              >
+                {loading ? "Entrando..." : "Continuar"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

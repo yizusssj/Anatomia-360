@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { saveQuizAttempt } from "../services/quizService";
 
 const labels = {
   oseo: "Sistema óseo",
@@ -16,29 +17,56 @@ export default function QuizResult() {
   const percent = Math.round((result / total) * 100);
 
   useEffect(() => {
-  const saved = JSON.parse(localStorage.getItem("quizProgress") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const uid = user.uid;
 
-  const current = saved[systemId] || {
-    attempts: 0,
-    totalScore: 0,
-    average: 0,
+  const saveKey = `quiz_saved_${uid}_${systemId}_${count}_${score}`;
+
+  if (sessionStorage.getItem(saveKey)) return;
+
+  const saveResult = async () => {
+    try {
+      if (uid) {
+        await saveQuizAttempt({
+          uid,
+          systemId,
+          questionCount: total,
+          score: result,
+          percent,
+        });
+      }
+
+      // seguimos guardando local para que tu pantalla de progreso siga jalando ahorita
+      const saved = JSON.parse(localStorage.getItem("quizProgress") || "{}");
+
+      const current = saved[systemId] || {
+        attempts: 0,
+        totalScore: 0,
+        average: 0,
+      };
+
+      const attempts = current.attempts + 1;
+      const totalScore = current.totalScore + percent;
+      const average = Math.round(totalScore / attempts);
+
+      const updated = {
+        ...saved,
+        [systemId]: {
+          attempts,
+          totalScore,
+          average,
+        },
+      };
+
+      localStorage.setItem("quizProgress", JSON.stringify(updated));
+      sessionStorage.setItem(saveKey, "1");
+    } catch (err) {
+      console.error("SAVE QUIZ ERROR:", err);
+    }
   };
 
-  const attempts = current.attempts + 1;
-  const totalScore = current.totalScore + percent;
-  const average = Math.round(totalScore / attempts);
-
-  const updated = {
-    ...saved,
-    [systemId]: {
-      attempts,
-      totalScore,
-      average,
-    },
-  };
-
-  localStorage.setItem("quizProgress", JSON.stringify(updated));
-}, [systemId, percent]);
+  saveResult();
+}, [systemId, count, score, total, result, percent]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e3a4f] via-[#263246] to-[#1c2431] px-5 pt-6 pb-24 text-white">

@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getUserProgress } from "../services/quizService";
 
 const ITEMS = [
   {
@@ -36,17 +38,38 @@ function Ring({ percent = 0, color = "orange" }) {
   const dash = (p / 100) * c;
 
   const colors = {
-    orange: { ring: "stroke-orange-400", bg: "stroke-orange-200/30", text: "text-orange-500" },
-    pink: { ring: "stroke-pink-400", bg: "stroke-pink-200/30", text: "text-pink-500" },
-    yellow: { ring: "stroke-yellow-400", bg: "stroke-yellow-200/30", text: "text-yellow-500" },
-    green: { ring: "stroke-green-400", bg: "stroke-green-200/30", text: "text-green-500" },
+    orange: {
+      ring: "stroke-orange-400",
+      bg: "stroke-orange-200/30",
+      text: "text-orange-500",
+    },
+    pink: {
+      ring: "stroke-pink-400",
+      bg: "stroke-pink-200/30",
+      text: "text-pink-500",
+    },
+    yellow: {
+      ring: "stroke-yellow-400",
+      bg: "stroke-yellow-200/30",
+      text: "text-yellow-500",
+    },
+    green: {
+      ring: "stroke-green-400",
+      bg: "stroke-green-200/30",
+      text: "text-green-500",
+    },
   };
 
   const cls = colors[color] ?? colors.orange;
 
   return (
     <div className="relative w-[56px] h-[56px] shrink-0">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="rotate-[-90deg]">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="rotate-[-90deg]"
+      >
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -69,7 +92,7 @@ function Ring({ percent = 0, color = "orange" }) {
 
       <div className="absolute inset-0 grid place-items-center">
         <div className="text-[10px] leading-tight text-center">
-          <div className="text-[9px] text-black/50">Porcentaje</div>
+          <div className="text-[9px] text-black/50">Status</div>
           <div className={`font-semibold ${cls.text}`}>{p}%</div>
         </div>
       </div>
@@ -78,7 +101,31 @@ function Ring({ percent = 0, color = "orange" }) {
 }
 
 export default function Progress() {
-  const savedProgress = JSON.parse(localStorage.getItem("quizProgress") || "{}");
+  const [savedProgress, setSavedProgress] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+        if (!user.uid) {
+          setSavedProgress({});
+          setLoading(false);
+          return;
+        }
+
+        const progressData = await getUserProgress(user.uid);
+        setSavedProgress(progressData);
+      } catch (error) {
+        console.error("ERROR LOADING PROGRESS:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProgress();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e3a4f] via-[#263246] to-[#1c2431] text-white px-5 pt-6 pb-24">
@@ -94,34 +141,42 @@ export default function Progress() {
         <h1 className="text-lg font-semibold">Mi progreso</h1>
       </div>
 
-      <div className="space-y-4">
-        {ITEMS.map((it) => (
-          <div
-            key={it.id}
-            className="bg-white rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.25)] flex items-center gap-4"
-          >
-            <Ring percent={savedProgress[it.id]?.average || 0} color={it.color} />
+      {loading ? (
+        <div className="text-center text-white/70 mt-10">Cargando progreso...</div>
+      ) : (
+        <div className="space-y-4">
+          {ITEMS.map((it) => (
+            <div
+              key={it.id}
+              className="bg-white rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.25)] flex items-center gap-4"
+            >
+              <Ring percent={savedProgress[it.id]?.average || 0} color={it.color} />
 
-            <div className="min-w-0">
-              <div
-                className={[
-                  "text-sm font-semibold",
-                  it.color === "orange" ? "text-orange-500" : "",
-                  it.color === "pink" ? "text-pink-500" : "",
-                  it.color === "yellow" ? "text-yellow-500" : "",
-                  it.color === "green" ? "text-green-500" : "",
-                ].join(" ")}
-              >
-                {it.title}
-              </div>
-              <div className="text-[11px] text-black/55 leading-snug line-clamp-2">
-              <div className="text-[10px] text-black/40 mt-1"> Intentos: {savedProgress[it.id]?.attempts || 0}</div>
-                {it.desc}
+              <div className="min-w-0">
+                <div
+                  className={[
+                    "text-sm font-semibold",
+                    it.color === "orange" ? "text-orange-500" : "",
+                    it.color === "pink" ? "text-pink-500" : "",
+                    it.color === "yellow" ? "text-yellow-500" : "",
+                    it.color === "green" ? "text-green-500" : "",
+                  ].join(" ")}
+                >
+                  {it.title}
+                </div>
+
+                <div className="text-[11px] text-black/55 leading-snug line-clamp-2">
+                  {it.desc}
+                </div>
+
+                <div className="text-[10px] text-black/40 mt-1">
+                  Intentos: {savedProgress[it.id]?.attempts || 0}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
