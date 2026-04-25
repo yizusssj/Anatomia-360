@@ -22,7 +22,7 @@ export default function Forgot() {
     try {
       setLoading(true);
       await resetPassword(email);
-      setSuccess("Te enviamos un correo para restablecer tu contraseña.");
+      setSuccess("MENSAJE LARGO DE PRUEBA 123456789 SI SE VE ESTO YA CAMBIO");
     } catch (err) {
       console.error("RESET PASSWORD ERROR:", err);
 

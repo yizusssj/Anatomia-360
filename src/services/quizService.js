@@ -77,11 +77,7 @@ export async function getUserProgress(uid) {
 export async function getLastQuizAttempt(uid) {
   if (!uid) return null;
 
-  const q = query(
-    collection(db, "quizAttempts"),
-    where("uid", "==", uid)
-  );
-
+  const q = query(collection(db, "quizAttempts"), where("uid", "==", uid));
   const snap = await getDocs(q);
 
   if (snap.empty) return null;
@@ -96,10 +92,8 @@ export async function getLastQuizAttempt(uid) {
       return;
     }
 
-    const currentDate =
-      data.createdAt?.seconds ? data.createdAt.seconds : 0;
-    const latestDate =
-      latest.createdAt?.seconds ? latest.createdAt.seconds : 0;
+    const currentDate = data.createdAt?.seconds ? data.createdAt.seconds : 0;
+    const latestDate = latest.createdAt?.seconds ? latest.createdAt.seconds : 0;
 
     if (currentDate > latestDate) {
       latest = data;
@@ -112,32 +106,34 @@ export async function getLastQuizAttempt(uid) {
 export async function getUsedQuestionIds(uid, systemId) {
   if (!uid || !systemId) return [];
 
-  const usedRef = doc(db, "usedQuestions", `${uid}_${systemId}`);
-  const usedSnap = await getDoc(usedRef);
+  const q = query(
+    collection(db, "usedQuestions"),
+    where("uid", "==", uid),
+    where("systemId", "==", systemId)
+  );
 
-  if (!usedSnap.exists()) return [];
+  const snap = await getDocs(q);
 
-  const data = usedSnap.data();
-  return data.usedQuestionIds || [];
+  const usedIds = [];
+  snap.forEach((docItem) => {
+    const data = docItem.data();
+    if (data.questionId) usedIds.push(data.questionId);
+  });
+
+  return usedIds;
 }
 
 export async function saveUsedQuestionIds(uid, systemId, questionIds) {
-  if (!uid || !systemId) return;
+  if (!uid || !systemId || !questionIds?.length) return;
 
-  const usedRef = doc(db, "usedQuestions", `${uid}_${systemId}`);
-  const usedSnap = await getDoc(usedRef);
+  const saves = questionIds.map((questionId) =>
+    addDoc(collection(db, "usedQuestions"), {
+      uid,
+      systemId,
+      questionId,
+      usedAt: serverTimestamp(),
+    })
+  );
 
-  let usedQuestionIds = [...questionIds];
-
-  if (usedSnap.exists()) {
-    const data = usedSnap.data();
-    usedQuestionIds = [...new Set([...(data.usedQuestionIds || []), ...questionIds])];
-  }
-
-  await setDoc(usedRef, {
-    uid,
-    systemId,
-    usedQuestionIds,
-    updatedAt: serverTimestamp(),
-  });
+  await Promise.all(saves);
 }
