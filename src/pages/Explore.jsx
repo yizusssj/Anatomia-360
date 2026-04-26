@@ -1,163 +1,286 @@
 import { useMemo, useState } from "react";
-import BottomNav from "../components/BottomNav";
-import "@google/model-viewer";
-
-
-// Capas simuladas (luego las conectamos al modelo 3D real)
-const DEFAULT_LAYERS = [
-  { id: "skeletal", name: "Sistema óseo", on: true },
-  { id: "muscular", name: "Sistema muscular", on: false },
-  { id: "nervous", name: "Sistema nervioso", on: false },
-  { id: "circulatory", name: "Sistema circulatorio", on: false },
-  { id: "organs", name: "Órganos", on: false },
-];
+import { Link } from "react-router-dom";
+import { exploreData } from "../data/exploreData";
+import { bodySystems } from "../data/bodySystems";
+import ModelViewer from "../components/ModelViewer";
 
 export default function Explore() {
-  const [layers, setLayers] = useState(DEFAULT_LAYERS);
-  const [openPanel, setOpenPanel] = useState(true);
-  const activeCount = useMemo(() => layers.filter((l) => l.on).length, [layers]);
+  const availableSystems = bodySystems.filter(
+    (system) => !!exploreData[system.id]
+  );
 
-  function toggleLayer(id) {
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, on: !l.on } : l))
+  const [selectedSystem, setSelectedSystem] = useState(
+    availableSystems[0]?.id || "oseo"
+  );
+  const [search, setSearch] = useState("");
+  const [selectedStructureId, setSelectedStructureId] = useState(null);
+
+  const systemData = exploreData[selectedSystem];
+
+  const filteredStructures = useMemo(() => {
+    const structures = systemData?.structures || [];
+
+    return structures.filter((item) =>
+      item.name.toLowerCase().includes(search.toLowerCase())
     );
-  }
+  }, [systemData, search]);
 
-  function setSolo(id) {
-    setLayers((prev) => prev.map((l) => ({ ...l, on: l.id === id })));
-  }
+  const groupedStructures = useMemo(() => {
+    const groups = {};
 
-  function setAll(val) {
-    setLayers((prev) => prev.map((l) => ({ ...l, on: val })));
-  }
+    filteredStructures.forEach((item) => {
+      const groupName = item.group || "General";
+
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+
+      groups[groupName].push(item);
+    });
+
+    return groups;
+  }, [filteredStructures]);
+
+  const selectedStructure =
+    filteredStructures.find((item) => item.id === selectedStructureId) ||
+    systemData?.structures?.find((item) => item.id === selectedStructureId) ||
+    filteredStructures[0] ||
+    null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#0b0f15]text-white pb-24">
-      {/* Header */}
-      <div className="mx-auto w-full max-w-md px-6 pt-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold">Explorar</h1>
-            <p className="text-xs text-white/60 mt-1">
-              Capas activas: <span className="text-white">{activeCount}</span>
-            </p>
-          </div>
-
-          <button
-            onClick={() => setOpenPanel((s) => !s)}
-            className="rounded-full bg-white/10 border border-white/10 px-4 py-2 text-xs font-semibold hover:bg-white/15 transition"
+    <div className="min-h-screen bg-[#0b0f15] text-white px-5 pt-6 pb-24">
+      <div className="mx-auto w-full max-w-[1300px]">
+        <div className="relative flex items-center justify-center mb-6">
+          <Link
+            to="/home"
+            className="absolute left-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition"
+            aria-label="Volver"
           >
-            {openPanel ? "Ocultar capas" : "Mostrar capas"}
-          </button>
+            <span className="text-white text-lg leading-none">←</span>
+          </Link>
+
+          <h1 className="text-lg font-semibold">Explorar sistemas</h1>
         </div>
 
-       {/* Modelo 3D */}
-<div className="mt-6 rounded-[32px] bg-black/35 border border-white/10 overflow-hidden h-[440px]">
-  <model-viewer
-    src="/models/lkn.glb"
-    alt="Modelo prueba"
-    camera-controls
-    auto-rotate
-    environment-image="neutral"
-    exposure="1.4"
-    shadow-intensity="1.5"
-    shadow-softness="0.8"
-    tone-mapping="aces"
-    style={{ width: "100%", height: "100%" }}
-  />
-</div>
+        <div className="flex flex-wrap gap-2 mb-5">
+          {availableSystems.map((system) => (
+            <button
+              key={system.id}
+              type="button"
+              onClick={() => {
+                setSelectedSystem(system.id);
+                setSelectedStructureId(null);
+                setSearch("");
+              }}
+              className={`px-4 py-2 rounded-full text-sm border transition ${
+                selectedSystem === system.id
+                  ? "bg-white text-[#1c2431] border-white"
+                  : "bg-white/10 text-white border-white/10 hover:bg-white/15"
+              }`}
+            >
+              {system.shortLabel || system.label}
+            </button>
+          ))}
+        </div>
 
-{/* chips de estado */}
-<div className="mt-6 flex flex-wrap justify-center gap-2">
-  {layers
-    .filter((l) => l.on)
-    .map((l) => (
-      <span
-        key={l.id}
-        className="text-[11px] rounded-full bg-white/10 border border-white/10 px-3 py-1"
-      >
-        {l.name}
-      </span>
-    ))}
-</div>
+        {systemData && (
+          <div className="rounded-2xl bg-white/10 border border-white/10 p-5 mb-5">
+            <h2 className="text-2xl font-bold">{systemData.title}</h2>
+            <p className="text-white/70 mt-2">{systemData.subtitle}</p>
 
-        {/* Panel de capas */}
-        {openPanel && (
-          <div className="mt-6 rounded-[28px] bg-black/35 border border-white/10 p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-extrabold">Capas</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+              <div>
+                <p className="text-xs text-white/50 uppercase tracking-wide">
+                  Definición
+                </p>
+                <p className="text-sm leading-relaxed mt-1">
+                  {systemData.overview.definition}
+                </p>
+              </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setAll(true)}
-                  className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-[11px] font-semibold hover:bg-white/15 transition"
-                >
-                  Todo
-                </button>
-                <button
-                  onClick={() => setAll(false)}
-                  className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-[11px] font-semibold hover:bg-white/15 transition"
-                >
-                  Nada
-                </button>
+              <div>
+                <p className="text-xs text-white/50 uppercase tracking-wide">
+                  Nota académica
+                </p>
+                <p className="text-sm leading-relaxed mt-1">
+                  {systemData.overview.academicNote}
+                </p>
               </div>
             </div>
 
-            <div className="mt-4 space-y-3">
-              {layers.map((l) => (
-                <div
-                  key={l.id}
-                  className="flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">{l.name}</div>
-                    <button
-                      onClick={() => setSolo(l.id)}
-                      className="text-[11px] text-white/60 hover:text-white hover:underline mt-1"
-                      type="button"
-                    >
-                      Solo esta capa
-                    </button>
-                  </div>
-
-                  {/* switch */}
-                  <button
-                    type="button"
-                    onClick={() => toggleLayer(l.id)}
-                    className={[
-                      "h-7 w-12 rounded-full border transition flex items-center px-1",
-                      l.on
-                        ? "bg-white/80 border-white/20 justify-end"
-                        : "bg-white/10 border-white/10 justify-start",
-                    ].join(" ")}
-                    aria-label={`Toggle ${l.name}`}
-                  >
-                    <span
-                      className={[
-                        "h-5 w-5 rounded-full transition",
-                        l.on ? "bg-black" : "bg-white",
-                      ].join(" ")}
-                    />
-                  </button>
-                </div>
-              ))}
+            <div className="mt-5">
+              <p className="text-xs text-white/50 uppercase tracking-wide mb-2">
+                Funciones principales
+              </p>
+              <ul className="space-y-2 text-sm text-white/85">
+                {systemData.overview.mainFunctions.map((item, index) => (
+                  <li key={index} className="leading-relaxed">
+                    • {item}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Acciones abajo */}
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <button className="rounded-2xl bg-white text-black font-extrabold py-3 hover:opacity-90 transition">
-                Ver info
-              </button>
-              <button className="rounded-2xl bg-white/10 border border-white/10 font-semibold py-3 hover:bg-white/15 transition">
-                Guardar
-              </button>
+            <div className="mt-5">
+              <p className="text-xs text-white/50 uppercase tracking-wide">
+                Fuente base
+              </p>
+              <p className="text-sm leading-relaxed mt-1 text-white/75">
+                {systemData.overview.sourceBase}
+              </p>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Bottom nav (Explorar no abre menú aquí) */}
-      <BottomNav onExplore={() => {}} />
+        <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr_360px] gap-5">
+          <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+            <h2 className="text-base font-semibold mb-3">Estructuras</h2>
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar estructura..."
+              className="w-full rounded-xl bg-white/10 text-white placeholder-white/50 px-4 py-3 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/30"
+            />
+
+            <div className="mt-4 space-y-4 max-h-[520px] overflow-y-auto pr-1">
+              {Object.keys(groupedStructures).length > 0 ? (
+                Object.entries(groupedStructures).map(([groupName, items]) => (
+                  <div key={groupName}>
+                    <p className="text-xs uppercase tracking-wide text-white/45 mb-2 px-1">
+                      {groupName}
+                    </p>
+
+                    <div className="space-y-2">
+                      {items.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setSelectedStructureId(item.id)}
+                          className={`w-full text-left rounded-xl border px-4 py-3 transition ${
+                            selectedStructure?.id === item.id
+                              ? "bg-white text-[#1c2431] border-white"
+                              : "bg-white/5 text-white border-white/10 hover:bg-white/10"
+                          }`}
+                        >
+                          <p className="font-medium">{item.name}</p>
+                          <p
+                            className={`text-xs mt-1 ${
+                              selectedStructure?.id === item.id
+                                ? "text-[#1c2431]/70"
+                                : "text-white/55"
+                            }`}
+                          >
+                            {item.region}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-white/60 py-6 text-center">
+                  No se encontraron estructuras.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white/10 border border-white/10 p-4 min-h-[520px] flex flex-col">
+            <div>
+              <h2 className="text-lg font-semibold">{systemData.title}</h2>
+              <p className="text-sm text-white/65 mt-1">{systemData.subtitle}</p>
+            </div>
+
+            <div className="flex-1 mt-4 rounded-2xl bg-black/20 border border-white/10 overflow-hidden relative min-h-[420px]">
+              <ModelViewer modelPath={systemData.modelPath} />
+
+              {selectedStructure && (
+                <div className="absolute bottom-4 left-4 rounded-xl bg-black/60 border border-white/10 px-4 py-3 backdrop-blur-sm max-w-[80%]">
+                  <p className="text-xs text-white/50">Estructura seleccionada</p>
+                  <p className="font-semibold mt-1">{selectedStructure.name}</p>
+                  <p className="text-xs text-white/65 mt-1">
+                    {selectedStructure.region}
+                  </p>
+                  {selectedStructure.group && (
+                    <p className="text-xs text-white/45 mt-1">
+                      Grupo: {selectedStructure.group}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+            <h2 className="text-base font-semibold mb-3">Ficha anatómica</h2>
+
+            {selectedStructure ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xl font-bold">{selectedStructure.name}</p>
+                  <p className="text-sm text-white/60 mt-1">
+                    {selectedStructure.region}
+                  </p>
+                  {selectedStructure.group && (
+                    <p className="text-xs text-white/45 mt-2 uppercase tracking-wide">
+                      {selectedStructure.group}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-xs text-white/50 uppercase tracking-wide">
+                    Tipo
+                  </p>
+                  <p className="text-sm mt-1">{selectedStructure.type}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-white/50 uppercase tracking-wide">
+                    Función
+                  </p>
+                  <p className="text-sm mt-1 leading-relaxed">
+                    {selectedStructure.function}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-white/50 uppercase tracking-wide">
+                    Relaciones
+                  </p>
+                  <p className="text-sm mt-1 leading-relaxed">
+                    {selectedStructure.relations}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-white/50 uppercase tracking-wide">
+                    Dato clave
+                  </p>
+                  <p className="text-sm mt-1 leading-relaxed">
+                    {selectedStructure.keyFact}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-white/50 uppercase tracking-wide">
+                    Dato clínico
+                  </p>
+                  <p className="text-sm mt-1 leading-relaxed">
+                    {selectedStructure.clinicalNote}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-white/60">
+                Selecciona una estructura para ver su ficha anatómica.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
